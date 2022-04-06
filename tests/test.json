@@ -2,12 +2,12 @@
   "kind": "OperatorUnitTest",
   "name": "test",
   "namespace": "ds0",
-  "inputDataUri": "crabs-long.csv",
-  "outputDataUri": ["table1.csv","table2.csv","table3.csv"],
-  "columns": ["sex"],
-  "rows": ["variable"],
+  "inputDataUri": "input.csv",
+  "outputDataUri": ["table1.csv","table2.csv"],
+  "columns": ["col"],
+  "rows": ["row"],
   "colors": [],
   "labels": [],
-  "yAxis": "measurement",
+  "yAxis": "y",
   "xAxis": ""
 }
