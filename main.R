@@ -22,7 +22,7 @@ ctx %>%
   ungroup() %>%
   cbind(ctx$rselect()) %>%
   left_join(clusters) %>%
-  mutate(cluster = as.integer(gsub("c", "", .[[5]]))) %>%
+  mutate(cluster = as.numeric(gsub("c", "", .[[5]]))) %>%
   select(.ri, cluster) %>%
   ctx$addNamespace() %>%
   ctx$save()
