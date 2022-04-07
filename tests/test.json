@@ -5,7 +5,7 @@
   "inputDataUri": "input.csv",
   "outputDataUri": ["table1.csv","table2.csv"],
   "columns": ["col"],
-  "rows": ["row"],
+  "rows": ["filename", "rowId"],
   "colors": [],
   "labels": [],
   "yAxis": "y",
