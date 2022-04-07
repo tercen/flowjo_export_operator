@@ -12,7 +12,9 @@ Input projection|.
 
 Output relations|.
 ---|---
-`cluster`           | FLOWSom cluster per row
+`filename`          | name of the FCS file
+`rowId`             | id of the row inside the FCS file
+`cluster`           | FLOWSom cluster
 
 ##### Details
 

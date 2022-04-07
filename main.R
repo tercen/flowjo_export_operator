@@ -59,12 +59,16 @@ df <- ctx %>%
   cbind(ctx$rselect()) %>%
   left_join(clusters) %>%
   mutate(cluster = ifelse(.[[6]] == "", -1, as.numeric(gsub("c", "", .[[6]])))) %>%
-  select(filename, rowId, cluster)
+  select(.ri, filename, rowId, cluster)
 
 # Save a table for each file
 filenames <- unique(df$filename)
 project   <- ctx$client$projectService$get(ctx$schema$projectId)
 lapply(filenames, FUN = function(filename) {
-  df <- df %>% filter(filename == filename) %>% select(2,3)
-  upload_data(df, filename, project, ctx$client)
+  df_file <- df %>% filter(filename == filename) %>% select(rowId, cluster)
+  upload_data(df_file, filename, project, ctx$client)
 })
+
+df %>%
+  ctx$addNamespace() %>%
+  ctx$save()
