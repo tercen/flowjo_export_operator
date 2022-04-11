@@ -15,9 +15,12 @@ if (length(clusters) != 1) {
 
 clusters <- cbind(clusters, .ci = seq(0, nrow(clusters) - 1))
 
-upload_data <- function(df, file_name, project, client) {
+output_folder <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data", as.character(ctx$op.value('output_folder')))
+
+upload_data <- function(df, folder, file_name, project, client) {
   fileDoc = FileDocument$new()
   fileDoc$name = paste0("Export-", file_name)
+  fileDoc$folderId = folder$id
   fileDoc$projectId = project$id
   fileDoc$acl$owner = project$acl$owner
   fileDoc$metadata = CSVFileMetadata$new()
@@ -49,6 +52,11 @@ upload_data <- function(df, file_name, project, client) {
   if (inherits(task$state, 'FailedState')){
     stop(task$state$reason)
   }
+  
+  # move file to folder
+  schema = client$tableSchemaService$get(task$schemaId)
+  schema$folderId = folder$id
+  client$tableSchemaService$update(schema)
 }
 
 df <- ctx %>%
@@ -62,11 +70,12 @@ df <- ctx %>%
   select(.ri, filename, rowId, cluster)
 
 # Save a table for each file
-filenames <- unique(df$filename)
 project   <- ctx$client$projectService$get(ctx$schema$projectId)
+folder    <- ctx$client$folderService$getOrCreate(project$id, output_folder)
+filenames <- unique(df$filename)
 lapply(filenames, FUN = function(filename) {
   df_file <- df %>% filter(filename == filename) %>% select(rowId, cluster)
-  upload_data(df_file, filename, project, ctx$client)
+  upload_data(df_file, folder, filename, project, ctx$client)
 })
 
 df %>%

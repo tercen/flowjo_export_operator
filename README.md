@@ -10,6 +10,10 @@ Input projection|.
 `row`               | factor, rowId from the FCS files
 `column`            | factor, the cluster names
 
+Input parameters|.
+---|---
+`output_folder`     | directory where the output tables will be put
+
 Output relations|.
 ---|---
 `filename`          | name of the FCS file
