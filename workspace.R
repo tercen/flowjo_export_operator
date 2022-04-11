@@ -27,7 +27,6 @@ output_folder <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data"
 upload_data <- function(df, folder, file_name, project, client) {
   fileDoc = FileDocument$new()
   fileDoc$name = paste0("Export-", file_name)
-  fileDoc$folderId = folder$id
   fileDoc$projectId = project$id
   fileDoc$acl$owner = project$acl$owner
   fileDoc$metadata = CSVFileMetadata$new()
@@ -35,6 +34,9 @@ upload_data <- function(df, folder, file_name, project, client) {
   fileDoc$metadata$separator = ','
   fileDoc$metadata$quote = '"'
   fileDoc$metadata$contentEncoding = 'iso-8859-1'
+  if (!is.null(folder)) {
+    fileDoc$folderId = folder$id
+  }
   
   tmp_file <- tempfile()
   write.csv(df, tmp_file, row.names = FALSE)
@@ -61,9 +63,11 @@ upload_data <- function(df, folder, file_name, project, client) {
   }
   
   # move file to folder
-  schema = client$tableSchemaService$get(task$schemaId)
-  schema$folderId = folder$id
-  client$tableSchemaService$update(schema)
+  if (!is.null(folder)) {
+    schema = client$tableSchemaService$get(task$schemaId)
+    schema$folderId = folder$id
+    client$tableSchemaService$update(schema)
+  }
 }
 
 df <- ctx %>%
@@ -78,7 +82,10 @@ df <- ctx %>%
 
 # Save a table for each file
 project   <- ctx$client$projectService$get(ctx$schema$projectId)
-folder    <- ctx$client$folderService$getOrCreate(project$id, output_folder)
+folder    <- NULL
+if (output_folder != "") {
+  folder  <- ctx$client$folderService$getOrCreate(project$id, output_folder)
+}
 filenames <- unique(df$filename)
 lapply(filenames, FUN = function(filename) {
   df_file <- df %>% filter(filename == filename) %>% select(rowId, cluster)
