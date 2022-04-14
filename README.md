@@ -19,5 +19,8 @@ result columns      | Results of the FlowJo workflow, e.g. FLOWSom clusters, UMA
 
 ##### Details
 
-This operator can be used after the [FLOWSom operator](https://github.com/tercen/flowsom_operator) or
-[UMAP operator] https://github.com/tercen/umap_operator
+This operator can be used after one of these operators:
+* [FLOWSom operator](https://github.com/tercen/flowsom_operator)
+* [UMAP operator](https://github.com/tercen/umap_operator)
+* [fast_tSNE operator](https://github.com/tercen/fast_tSNE_operator)
+* [MEM_operator](https://github.com/tercen/MEM_operator)
