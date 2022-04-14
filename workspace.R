@@ -70,6 +70,7 @@ get_numeric_value <- function(value) {
     result <- as.numeric(regmatches(value, gregexpr("[[:digit:]]+", value)))
     result[is.na(result)] <- -1
   } else if (cl == "numeric") {
+    value[is.nan(value)] <- -1
     result <- value
   }
   result
