@@ -84,7 +84,7 @@ lapply(filenames, FUN = function(filename) {
   upload_data(df_file, folder, filename, project, ctx$client)
 })
 
-ctx %>%
-  select(.ri, .ci) %>%
+df %>% 
+  mutate(.ri = seq(1, nrow(.))) %>%
   ctx$addNamespace() %>%
   ctx$save()
