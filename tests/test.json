@@ -4,10 +4,10 @@
   "namespace": "ds0",
   "inputDataUri": "input.csv",
   "outputDataUri": ["table1.csv","table2.csv"],
-  "columns": ["col"],
-  "rows": ["filename", "rowId"],
+  "columns": [],
+  "rows": ["filename", "rowId", "col"],
   "colors": [],
   "labels": [],
-  "yAxis": "y",
+  "yAxis": "",
   "xAxis": ""
 }
