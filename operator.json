@@ -1,9 +1,9 @@
 {
-  "name": "FlowSOM Export Operator",
-  "description": "Exports the clusters for an FCS file.",
+  "name": "FlowJo Export Operator",
+  "description": "Exports FlowJo results.",
   "tags": ["flowjo"],
   "authors": ["tercen"],
-  "urls": ["https://github.com/tercen/flowsom_export_operator"],
+  "urls": ["https://github.com/tercen/flowjo_export_operator"],
   "properties": [
     {
       "kind": "StringProperty",
