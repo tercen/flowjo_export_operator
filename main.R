@@ -4,16 +4,9 @@ library(dplyr, warn.conflicts = FALSE)
 ctx = tercenCtx()
 
 rows <- ctx$rselect()
-if (length(rows) != 2) {
-  stop("There should be two rows: filename and rowId")
+if (length(rows) <= 2) {
+  stop("There should be at least three rows: filename, rowId and a result")
 }
-
-clusters <- ctx$cselect()
-if (length(clusters) != 1) {
-  stop("There should be a single column for the clusters")
-}
-
-clusters <- cbind(clusters, .ci = seq(0, nrow(clusters) - 1))
 
 output_folder <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data", as.character(ctx$op.value('output_folder')))
 
@@ -63,15 +56,21 @@ upload_data <- function(df, folder, file_name, project, client) {
   }
 }
 
-df <- ctx %>%
-  select(.y, .ci, .ri) %>%
-  group_by(.ri, .ci) %>%
-  summarise(.y = mean(.y)) %>%
-  ungroup() %>%
-  cbind(ctx$rselect()) %>%
-  left_join(clusters) %>%
-  mutate(cluster = ifelse(.[[6]] == "", -1, as.numeric(gsub("c", "", .[[6]])))) %>%
-  select(.ri, filename, rowId, cluster)
+get_numeric_value <- function(value) {
+  result <- NULL
+  cl <- class(value)
+  if (cl == "character") {
+    result <- as.numeric(regmatches(value, gregexpr("[[:digit:]]+", value)))
+    result[is.na(result)] <- -1
+  } else if (cl == "numeric") {
+    result <- value
+  }
+  result
+}
+
+df <- rows %>%
+  select(-rowId) %>%
+  mutate_at(vars(-("filename")), get_numeric_value)
 
 # Save a table for each file
 project   <- ctx$client$projectService$get(ctx$schema$projectId)
@@ -81,11 +80,7 @@ if (output_folder != "") {
 }
 filenames <- unique(df$filename)
 lapply(filenames, FUN = function(filename) {
-  df_file <- df %>% filter(filename == filename) %>% select(rowId, cluster)
+  df_file <- df %>% filter(filename == filename) %>% select(-filename)
   upload_data(df_file, folder, filename, project, ctx$client)
 })
-
-df %>%
-  ctx$addNamespace() %>%
-  ctx$save()
 
