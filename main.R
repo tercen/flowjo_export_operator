@@ -101,7 +101,7 @@ filenames <- unique(df$filename)
 lapply(filenames, FUN = function(filename) {
   df_file  <- df %>% filter(filename == filename) %>% select(-filename)
   last_col <- rev(colnames(df_file))[1]
-  out_name <- unlist(strsplit(last_col, "\\."))[[2]]
+  out_name <- gsub('[[:digit:]]+', '', unlist(strsplit(last_col, "\\."))[[2]])
   filename <- paste0(filename, "_", out_name)
   upload_data(df_file, folder, filename, project, ctx$client)
 })
