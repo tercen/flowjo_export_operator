@@ -9,6 +9,7 @@ library(dplyr, warn.conflicts = FALSE)
 #options("tercen.password"= "admin")
 
 ctx = tercenCtx()
+na_cluster_value <- -1
 
 rows <- ctx$rselect()
 if (length(rows) <= 2) {
@@ -68,9 +69,9 @@ get_numeric_value <- function(value) {
   cl <- class(value)
   if (cl == "character") {
     result <- as.numeric(regmatches(value, gregexpr("[[:digit:]]+", value)))
-    result[is.na(result)] <- -1
+    result[is.na(result)] <- na_cluster_value
   } else if (cl == "numeric") {
-    value[is.nan(value)] <- -1
+    value[is.nan(value)] <- na_cluster_value
     result <- value
   }
   result
@@ -78,7 +79,24 @@ get_numeric_value <- function(value) {
 
 df <- rows %>%
   select(-rowId) %>%
-  mutate_at(vars(-("filename")), get_numeric_value)
+  mutate_at(vars(-("filename")), get_numeric_value) %>%
+  mutate(across(where(is.character), trimws))
+
+is_whole_number <- function(x) all(floor(x) == x)
+type_result     <- sapply(df, function(x) if (class(x) == "numeric") { is_whole_number(x) })
+new_colnames    <- lapply(colnames(df), FUN = function(x) {
+  result <- x
+  type   <- type_result[[x]]
+  if (!is.null(type)) {
+    if (isTRUE(type)) {
+      result <- paste0(result, ".int")
+    } else {
+      result <- paste0(result, ".double")
+    }
+  }
+  return(result)
+})
+df <- df %>% `colnames<-`(new_colnames)
 
 # Save a table for each file
 project   <- ctx$client$projectService$get(ctx$schema$projectId)
@@ -88,7 +106,10 @@ if (output_folder != "") {
 }
 filenames <- unique(df$filename)
 lapply(filenames, FUN = function(filename) {
-  df_file <- df %>% filter(filename == filename) %>% select(-filename)
+  df_file  <- df %>% filter(filename == filename) %>% select(-filename)
+  last_col <- rev(colnames(df_file))[1]
+  out_name <- unlist(strsplit(last_col, "\\."))[[2]]
+  filename <- paste0(filename, "_", out_name)
   upload_data(df_file, folder, filename, project, ctx$client)
 })
 
