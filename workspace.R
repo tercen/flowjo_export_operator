@@ -16,8 +16,8 @@ if (length(rows) <= 2) {
 }
 
 output_folder    <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data", as.character(ctx$op.value('output_folder')))
-cluster_na_value <- ifelse(is.null(ctx$op.value('cluster_na_value')), 0, as.character(ctx$op.value('cluster_na_value')))
-other_na_value   <- ifelse(is.null(ctx$op.value('other_na_value')), 0, as.character(ctx$op.value('other_na_value')))
+cluster_na_value <- ifelse(is.null(ctx$op.value('cluster_na_value')), 0, as.numeric(ctx$op.value('cluster_na_value')))
+other_na_value   <- ifelse(is.null(ctx$op.value('other_na_value')), 0, as.numeric(ctx$op.value('other_na_value')))
 
 
 upload_data <- function(df, folder, file_name, project, client) {
