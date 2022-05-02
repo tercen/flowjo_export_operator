@@ -9,6 +9,18 @@
       "kind": "StringProperty",
       "name": "output_folder",
       "defaultValue": "exporting data"
+    },
+    {
+      "kind": "DoubleProperty",
+      "name": "cluster_na_value",
+      "defaultValue": 0,
+      "description": "Numeric value for NA cluster values"
+    },
+    {
+      "kind": "DoubleProperty",
+      "name": "other_na_value",
+      "defaultValue": 0,
+      "description": "Numeric value for NA values in other variables"
     }
   ]
 }
