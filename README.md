@@ -11,6 +11,8 @@ Input projection|.
 Input parameters|.
 ---|---
 `output_folder`     | directory where the output tables will be put
+`cluster_na_value`  | numeric value that should be used for NA cluster values, default 0
+`other_na_value`    | numeric value that should be used for NA values except the cluster variable, default 0
 
 Output relations|.
 ---|---
