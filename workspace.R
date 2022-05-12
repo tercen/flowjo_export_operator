@@ -19,6 +19,12 @@ output_folder    <- ifelse(is.null(ctx$op.value('output_folder')), "exporting da
 cluster_na_value <- ifelse(is.null(ctx$op.value('cluster_na_value')), 0, as.numeric(ctx$op.value('cluster_na_value')))
 other_na_value   <- ifelse(is.null(ctx$op.value('other_na_value')), 0, as.numeric(ctx$op.value('other_na_value')))
 
+# create output folder
+project   <- ctx$client$projectService$get(ctx$schema$projectId)
+folder    <- NULL
+if (output_folder != "") {
+  folder  <- ctx$client$folderService$getOrCreate(project$id, output_folder)
+}
 
 upload_data <- function(df, folder, file_name, project, client) {
   fileDoc = FileDocument$new()
@@ -66,12 +72,26 @@ upload_data <- function(df, folder, file_name, project, client) {
   }
 }
 
-get_numeric_value <- function(value) {
+get_numeric_value <- function(value, col_name) {
   result <- NULL
   cl <- class(value)
   if (cl == "character") {
-    result <- as.numeric(regmatches(value, gregexpr("[[:digit:]]+", value)))
-    result[is.na(result)] <- cluster_na_value
+    result <- tryCatch(expr = as.numeric(regmatches(value, gregexpr("[[:digit:]]+", value))),
+                       error = function(e) {
+                         return(NULL)
+              })
+    if (is.null(result)) {
+      result <- value
+      non_empty_result      <- result[result != ""]
+      result[result != ""]  <- as.numeric(factor(non_empty_result))
+      result[result == ""]  <- NA
+      result[is.na(result)] <- cluster_na_value
+      df_cluster_mapping    <- data.frame(cluster = unique(factor(non_empty_result)), cluster_number = unique(as.numeric(factor(non_empty_result))))
+    } else {
+      result[is.na(result)] <- cluster_na_value
+      df_cluster_mapping    <- data.frame(cluster = c(NA, unique(value)[unique(value) != ""]), cluster_number = unique(result)[complete.cases(unique(result))])
+    }
+    upload_data(df_cluster_mapping %>% arrange(cluster_number), folder, paste0(col_name, "_cluster_mapping"), project, ctx$client)
   } else if (cl == "numeric") {
     value[is.nan(value)] <- other_na_value
     result <- value
@@ -81,7 +101,7 @@ get_numeric_value <- function(value) {
 
 df <- rows %>%
   select(-rowId) %>%
-  mutate_at(vars(-("filename")), get_numeric_value) %>%
+  mutate(across(!filename, ~ get_numeric_value(., cur_column()))) %>%
   mutate(across(where(is.character), trimws))
 
 is_whole_number <- function(x) all(floor(x) == x)
@@ -101,11 +121,6 @@ new_colnames    <- lapply(colnames(df), FUN = function(x) {
 df <- df %>% `colnames<-`(new_colnames)
 
 # Save a table for each file
-project   <- ctx$client$projectService$get(ctx$schema$projectId)
-folder    <- NULL
-if (output_folder != "") {
-  folder  <- ctx$client$folderService$getOrCreate(project$id, output_folder)
-}
 filenames <- unique(df$filename)
 lapply(filenames, FUN = function(filename) {
   df_file  <- df %>% filter(filename == filename) %>% select(-filename)
