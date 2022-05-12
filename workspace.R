@@ -84,8 +84,8 @@ get_numeric_value <- function(value, col_name) {
       result <- value
       non_empty_result      <- result[result != ""]
       result[result != ""]  <- as.numeric(factor(non_empty_result))
-      result[result == ""]  <- NA
-      result[is.na(result)] <- cluster_na_value
+      result[result == ""]  <- cluster_na_value
+      result                <- as.numeric(result)
       df_cluster_mapping    <- data.frame(cluster = unique(factor(non_empty_result)), cluster_number = unique(as.numeric(factor(non_empty_result))))
     } else {
       result[is.na(result)] <- cluster_na_value
