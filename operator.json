@@ -12,15 +12,21 @@
     },
     {
       "kind": "DoubleProperty",
-      "name": "cluster_na_value",
+      "name": "character_na_value",
       "defaultValue": 0,
-      "description": "Numeric value for NA cluster values"
+      "description": "Numeric value for NA values in character variables"
     },
     {
       "kind": "DoubleProperty",
-      "name": "other_na_value",
+      "name": "integer_na_value",
       "defaultValue": 0,
-      "description": "Numeric value for NA values in other variables"
+      "description": "Numeric value for NA values in integer variables"
+    },
+    {
+      "kind": "DoubleProperty",
+      "name": "double_na_value",
+      "defaultValue": 0,
+      "description": "Numeric value for NA values in double variables"
     }
   ]
 }
