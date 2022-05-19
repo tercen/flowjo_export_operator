@@ -83,16 +83,20 @@ get_numeric_value <- function(value, col_name) {
       df_cluster_mapping    <- data.frame(cluster = unique(factor(non_empty_result)), cluster_number = unique(as.numeric(factor(non_empty_result))))
     } else {
       result[is.na(result)] <- character_na_value
-      df_cluster_mapping    <- data.frame(cluster = c(NA, unique(value)[unique(value) != ""]), cluster_number = unique(result)[complete.cases(unique(result))])
+      cluster_vals <- unique(value)
+      if (any(unique(value) == "")) {
+        cluster_vals <- c(NA, unique(value)[unique(value) != ""])
+      }
+      df_cluster_mapping    <- data.frame(cluster = cluster_vals, cluster_number = unique(result)[complete.cases(unique(result))])
     }
     upload_data(df_cluster_mapping %>% arrange(cluster_number), folder, paste0(col_name, "_cluster_mapping"), project, ctx$client)
-  } else if (cl == "integer") {
-    value[is.na(value)] <- integer_na_value
-    result <- value
   } else if (cl == "numeric") {
     value[is.nan(value)] <- double_na_value
     result <- value
-  } 
+  } else if (cl == "integer") {
+    value[is.na(value)] <- integer_na_value
+    result <- value
+  }
   result
 }
 
