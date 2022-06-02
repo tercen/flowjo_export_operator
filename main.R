@@ -1,24 +1,7 @@
 library(tercen)
+library(tercenApi)
+library(data.table)
 library(dplyr, warn.conflicts = FALSE)
-
-ctx = tercenCtx()
-
-rows <- ctx$rselect()
-if (length(rows) <= 2) {
-  stop("There should be at least three rows: filename, rowId and a result")
-}
-
-output_folder      <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data", as.character(ctx$op.value('output_folder')))
-character_na_value <- ifelse(is.null(ctx$op.value('character_na_value')), 0, as.numeric(ctx$op.value('character_na_value')))
-integer_na_value   <- ifelse(is.null(ctx$op.value('integer_na_value')), 0, as.numeric(ctx$op.value('integer_na_value')))
-double_na_value    <- ifelse(is.null(ctx$op.value('double_na_value')), 0, as.numeric(ctx$op.value('double_na_value')))
-
-# create output folder
-project   <- ctx$client$projectService$get(ctx$schema$projectId)
-folder    <- NULL
-if (output_folder != "") {
-  folder  <- ctx$client$folderService$getOrCreate(project$id, output_folder)
-}
 
 upload_data <- function(df, folder, file_name, project, client) {
   fileDoc = FileDocument$new()
@@ -35,7 +18,7 @@ upload_data <- function(df, folder, file_name, project, client) {
   }
   
   tmp_file <- tempfile()
-  write.csv(df, tmp_file, row.names = FALSE)
+  data.table::fwrite(df, tmp_file, row.names = FALSE)
   
   file <- file(tmp_file, 'rb')
   bytes = readBin(file, raw(), n=file.info(tmp_file)$size)
@@ -70,10 +53,11 @@ get_numeric_value <- function(value, col_name) {
   result <- NULL
   cl <- class(value)
   if (cl == "character") {
-    result <- tryCatch(expr = as.numeric(regmatches(value, gregexpr("[[:digit:]]+", value))),
-                       error = function(e) {
-                         return(NULL)
-                       })
+    num <- suppressWarnings(as.numeric(value))
+    isnum <- !any(is.na(num))
+    if(!isnum) result <- NULL
+    else result <- num
+
     if (is.null(result)) {
       result <- value
       non_empty_result      <- result[result != ""]
@@ -98,6 +82,25 @@ get_numeric_value <- function(value, col_name) {
     result <- value
   }
   result
+}
+
+ctx = tercenCtx()
+
+rows <- ctx$rselect()
+if (length(rows) <= 2) {
+  stop("There should be at least three rows: filename, rowId and a result")
+}
+
+output_folder      <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data", as.character(ctx$op.value('output_folder')))
+character_na_value <- ifelse(is.null(ctx$op.value('character_na_value')), 0, as.numeric(ctx$op.value('character_na_value')))
+integer_na_value   <- ifelse(is.null(ctx$op.value('integer_na_value')), 0, as.numeric(ctx$op.value('integer_na_value')))
+double_na_value    <- ifelse(is.null(ctx$op.value('double_na_value')), 0, as.numeric(ctx$op.value('double_na_value')))
+
+# create output folder
+project   <- ctx$client$projectService$get(ctx$schema$projectId)
+folder    <- NULL
+if (output_folder != "") {
+  folder  <- ctx$client$folderService$getOrCreate(project$id, output_folder)
 }
 
 df <- rows %>%
