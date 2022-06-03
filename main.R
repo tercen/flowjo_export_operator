@@ -91,10 +91,10 @@ if (length(rows) <= 2) {
   stop("There should be at least three rows: filename, rowId and a result")
 }
 
-output_folder      <- ifelse(is.null(ctx$op.value('output_folder')), "exporting data", as.character(ctx$op.value('output_folder')))
-character_na_value <- ifelse(is.null(ctx$op.value('character_na_value')), 0, as.numeric(ctx$op.value('character_na_value')))
-integer_na_value   <- ifelse(is.null(ctx$op.value('integer_na_value')), 0, as.numeric(ctx$op.value('integer_na_value')))
-double_na_value    <- ifelse(is.null(ctx$op.value('double_na_value')), 0, as.numeric(ctx$op.value('double_na_value')))
+output_folder      <- ctx$op.value('output_folder', as.character, "exporting data")
+character_na_value <- ctx$op.value('character_na_value', as.numeric, 0)
+integer_na_value   <- ctx$op.value('integer_na_value', as.numeric, 0)
+double_na_value    <- ctx$op.value('double_na_value', as.numeric, 0)
 
 # create output folder
 project   <- ctx$client$projectService$get(ctx$schema$projectId)
