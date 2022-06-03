@@ -125,16 +125,24 @@ new_colnames    <- lapply(colnames(df), FUN = function(x) {
 df <- df %>% `colnames<-`(new_colnames)
 
 # Save a table for each file
-filenames <- unique(df$filename)
-lapply(filenames, FUN = function(filename) {
-  df_file   <- df %>% filter(filename == filename) %>% select(-filename)
-  col_names <- colnames(df_file)
-  out_name  <- paste(unique(unlist(lapply(col_names, FUN = function(x) { substr(unlist(strsplit(x, "\\."))[2], 1, 11) }))), collapse = "_")
+do.upload <- function(df_tmp, folder, project, ctx) {
+  filename <- df_tmp$filename[1]
+  df_tmp <- select(df_tmp, -filename)
+  col_names <- colnames(df_tmp)
+  out_name <- paste(unique(unlist(lapply(
+    col_names,
+    FUN = function(x) { substr(unlist(strsplit(x, "\\."))[2], 1, 11) }
+  ))), collapse = "_")
   filename  <- paste0(filename, "_", out_name)
-  upload_data(df_file, folder, filename, project, ctx$client)
-})
+  upload_data(df_tmp, folder, filename, project, ctx$client)
+  return(df_tmp)
+}
 
 df %>% 
-  mutate(.ri = seq(1, nrow(.))) %>%
+    group_by(filename) %>% 
+    do(do.upload(., folder, project, ctx))
+
+df %>% 
+  mutate(.ri = seq(0, nrow(.) - 1)) %>%
   ctx$addNamespace() %>%
   ctx$save()
