@@ -53,11 +53,12 @@ get_numeric_value <- function(value, col_name) {
   result <- NULL
   cl <- class(value)
   if (cl == "character") {
-    num <- suppressWarnings(as.numeric(value))
+    value_non_empty <- value[value != ""]
+    num <- suppressWarnings(as.numeric(value_non_empty))
     isnum <- !any(is.na(num))
     if(!isnum) result <- NULL
-    else result <- num
-
+    else result <- as.numeric(value)
+    
     if (is.null(result)) {
       result <- value
       non_empty_result      <- result[result != ""]
@@ -139,8 +140,8 @@ do.upload <- function(df_tmp, folder, project, ctx) {
 }
 
 df %>% 
-    group_by(filename) %>% 
-    do(do.upload(., folder, project, ctx))
+  group_by(filename) %>% 
+  do(do.upload(., folder, project, ctx))
 
 df %>% 
   mutate(.ri = seq(0, nrow(.) - 1)) %>%
