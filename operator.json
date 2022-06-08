@@ -8,7 +8,7 @@
     {
       "kind": "StringProperty",
       "name": "output_folder",
-      "defaultValue": "exporting data"
+      "defaultValue": "Exported data"
     },
     {
       "kind": "DoubleProperty",
