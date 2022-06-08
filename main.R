@@ -2,6 +2,7 @@ library(tercen)
 library(tercenApi)
 library(data.table)
 library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
 
 upload_data <- function(df, folder, file_name, project, client) {
   fileDoc = FileDocument$new()
@@ -49,48 +50,14 @@ upload_data <- function(df, folder, file_name, project, client) {
   }
 }
 
-get_numeric_value <- function(value, col_name) {
-  result <- NULL
-  cl <- class(value)
-  if (cl == "character") {
-    value_non_empty <- value[value != ""]
-    num <- suppressWarnings(as.numeric(value_non_empty))
-    isnum <- !any(is.na(num))
-    if(!isnum) result <- NULL
-    else result <- as.numeric(value)
-    
-    if (is.null(result)) {
-      result <- value
-      non_empty_result      <- result[result != ""]
-      result[result != ""]  <- as.numeric(factor(non_empty_result))
-      result[result == ""]  <- character_na_value
-      result                <- as.numeric(result)
-      df_cluster_mapping    <- data.frame(cluster = unique(factor(non_empty_result)), cluster_number = unique(as.numeric(factor(non_empty_result))))
-    } else {
-      result[is.na(result)] <- character_na_value
-      cluster_vals <- unique(value)
-      if (any(unique(value) == "")) {
-        cluster_vals <- c(NA, unique(value)[unique(value) != ""])
-      }
-      df_cluster_mapping    <- data.frame(cluster = cluster_vals, cluster_number = unique(result)[complete.cases(unique(result))])
-    }
-    upload_data(df_cluster_mapping %>% arrange(cluster_number), folder, paste0(col_name, "_cluster_mapping"), project, ctx$client)
-  } else if (cl == "numeric") {
-    value[is.nan(value)] <- double_na_value
-    result <- value
-  } else if (cl == "integer") {
-    value[is.na(value)] <- integer_na_value
-    result <- value
-  }
-  result
-}
-
 ctx = tercenCtx()
 
 rows <- ctx$rselect()
 if (length(rows) <= 2) {
   stop("There should be at least three rows: filename, rowId and a result")
 }
+if(!"filename" %in% colnames(rows)) stop("filename is required.")
+if(!"rowId" %in% colnames(rows))    stop("rowId is required.")
 
 output_folder      <- ctx$op.value('output_folder', as.character, "exporting data")
 character_na_value <- ctx$op.value('character_na_value', as.numeric, 0)
@@ -106,24 +73,10 @@ if (output_folder != "") {
 
 df <- rows %>%
   select(-rowId) %>%
-  mutate(across(!filename, ~ get_numeric_value(., cur_column()))) %>%
-  mutate(across(where(is.character), trimws))
-
-is_whole_number <- function(x) all(floor(x) == x)
-type_result     <- sapply(df, function(x) if (class(x) == "numeric") { is_whole_number(x) })
-new_colnames    <- lapply(colnames(df), FUN = function(x) {
-  result <- x
-  type   <- type_result[[x]]
-  if (!is.null(type)) {
-    if (isTRUE(type)) {
-      result <- paste0(result, ".int")
-    } else {
-      result <- paste0(result, ".double")
-    }
-  }
-  return(result)
-})
-df <- df %>% `colnames<-`(new_colnames)
+  mutate(across(where(is.character), trimws)) %>%
+  mutate_if(is.integer,   ~replace_na(., integer_na_value))   %>%
+  mutate_if(is.double,    ~replace_na(., double_na_value))    %>%
+  mutate_if(is.character, ~replace_na(., character_na_value))
 
 # Save a table for each file
 do.upload <- function(df_tmp, folder, project, ctx) {
