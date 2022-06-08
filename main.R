@@ -18,7 +18,7 @@ upload_data <- function(df, folder, file_name, project, client) {
   }
   
   tmp_file <- tempfile()
-  data.table::fwrite(df, tmp_file, row.names = FALSE)
+  data.table::fwrite(df, tmp_file, row.names = FALSE, na = "NA")
   
   file <- file(tmp_file, 'rb')
   bytes = readBin(file, raw(), n=file.info(tmp_file)$size)
