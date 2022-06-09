@@ -12,8 +12,8 @@ rows <- ctx$rselect()
 if (length(rows) <= 2) {
   stop("There should be at least three rows: filename, rowId and a result")
 }
-if(!"filename" %in% colnames(rows)) stop("filename is required.")
-if(!"rowId" %in% colnames(rows))    stop("rowId is required.")
+if(!grepl("filename", colnames(rows))) stop("filename is required.")
+if(!grepl("rowId", colnames(rows)))    stop("rowId is required.")
 
 output_folder      <- ctx$op.value('output_folder', as.character, "Exported data")
 character_na_value <- ctx$op.value('character_na_value', as.numeric, 0)
