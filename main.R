@@ -48,6 +48,7 @@ rows %>%
   mutate_if(is.character, ~replace_na(., character_na_value)) %>% 
   group_by(filename) %>% 
   do(do.upload(., folder, project, ctx)) %>% 
+  ungroup() %>%
   mutate(.ri = seq(0, nrow(.) - 1)) %>%
   ctx$addNamespace() %>%
   ctx$save()
