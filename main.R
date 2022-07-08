@@ -43,9 +43,8 @@ do.upload <- function(df_tmp, folder, project, ctx, filename_col) {
 }
 
 rows %>%
-  select(-matches("rowId")) %>%
   mutate(across(where(is.character), trimws)) %>%
-  mutate_if(is.integer,   ~replace_na(., as.integer(integer_na_value)))   %>%
+  mutate(across(c(where(is.integer), -matches("rowId")), ~replace_na(., as.integer(integer_na_value))))   %>%
   mutate_if(is.double,    ~replace_na(., double_na_value))    %>%
   mutate_if(is.character, ~replace_na(., character_na_value)) %>% 
   group_by_at(filename_col) %>%
