@@ -50,7 +50,7 @@ rows %>%
   mutate(across(c(where(is.integer), -rowid_col), ~replace_na(., as.integer(integer_na_value))))   %>%
   mutate_if(is.double,    ~replace_na(., double_na_value))    %>%
   mutate_if(is.character, ~replace_na(., character_na_value)) %>% 
-  mutate(!!rowid_col := as.integer(!!rlang::sym(rowid_col) + 1)) %>% # rows in FlowJo start at 1
+  mutate(!!rowid_col := !!rlang::sym(rowid_col) + 1) %>% # rows in FlowJo start at 1
   group_by_at(filename_col) %>%
   do(do.upload(., folder, project, ctx, filename_col, rowid_col)) %>%
   ungroup() %>%
