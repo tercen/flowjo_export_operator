@@ -13,10 +13,12 @@ if (length(rows) <= 2) {
   stop("There should be at least three rows: filename, rowId and a result")
 }
 filename_in_colnames <- grepl("filename", colnames(rows))
+rowid_in_colnames    <- grepl("rowId", colnames(rows))
 if(!any(filename_in_colnames)) stop("filename is required.")
-if(!any(grepl("rowId", colnames(rows))))    stop("rowId is required.")
+if(!any(rowid_in_colnames))    stop("rowId is required.")
 
 filename_col       <- colnames(rows)[filename_in_colnames]
+rowid_col          <- colnames(rows)[rowid_in_colnames]
 output_folder      <- ctx$op.value('output_folder', as.character, "Exported data")
 character_na_value <- ctx$op.value('character_na_value', as.numeric, 0)
 integer_na_value   <- ctx$op.value('integer_na_value', as.numeric, 0)
@@ -29,10 +31,11 @@ if (output_folder != "") {
   folder  <- ctx$client$folderService$getOrCreate(project$id, output_folder)
 }
 
-do.upload <- function(df_tmp, folder, project, ctx, filename_col) {
+do.upload <- function(df_tmp, folder, project, ctx, filename_col, rowid_col) {
   filename  <- df_tmp[[filename_col]][1]
   df_tmp    <- select(df_tmp, -!!filename_col)
   col_names <- colnames(df_tmp)
+  col_names <- col_names[col_names != rowid_col]
   out_name  <- paste(unique(unlist(lapply(
     col_names,
     FUN = function(x) { substr(unlist(strsplit(x, "\\."))[2], 1, 11) }
@@ -44,11 +47,12 @@ do.upload <- function(df_tmp, folder, project, ctx, filename_col) {
 
 rows %>%
   mutate(across(where(is.character), trimws)) %>%
-  mutate(across(c(where(is.integer), -matches("rowId")), ~replace_na(., as.integer(integer_na_value))))   %>%
+  mutate(across(c(where(is.integer), -rowid_col), ~replace_na(., as.integer(integer_na_value))))   %>%
   mutate_if(is.double,    ~replace_na(., double_na_value))    %>%
   mutate_if(is.character, ~replace_na(., character_na_value)) %>% 
+  mutate(!!rowid_col := as.integer(!!rlang::sym(rowid_col) + 1)) %>% # rows in FlowJo start at 1
   group_by_at(filename_col) %>%
-  do(do.upload(., folder, project, ctx, filename_col)) %>%
+  do(do.upload(., folder, project, ctx, filename_col, rowid_col)) %>%
   ungroup() %>%
   mutate(.ri = seq(0, nrow(.) - 1)) %>%
   ctx$addNamespace() %>%
