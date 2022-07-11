@@ -47,10 +47,9 @@ do.upload <- function(df_tmp, folder, project, ctx, filename_col, rowid_col) {
 
 rows %>%
   mutate(across(where(is.character), trimws)) %>%
-  mutate(across(c(where(is.integer), -rowid_col), ~replace_na(., as.integer(integer_na_value))))   %>%
+  mutate(across(c(where(is.integer), -all_of(rowid_col)), ~replace_na(., as.integer(integer_na_value))))   %>%
   mutate_if(is.double,    ~replace_na(., double_na_value))    %>%
-  mutate_if(is.character, ~replace_na(., character_na_value)) %>% 
-  mutate(!!rowid_col := !!rlang::sym(rowid_col) + 1) %>% # rows in FlowJo start at 1
+  mutate_if(is.character, ~replace_na(., character_na_value)) %>%
   group_by_at(filename_col) %>%
   do(do.upload(., folder, project, ctx, filename_col, rowid_col)) %>%
   ungroup() %>%
