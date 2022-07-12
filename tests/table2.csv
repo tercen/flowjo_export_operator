@@ -1,7 +1,7 @@
-"filename","rowId","col"
-"file1",0.0,0.0
-"file1",1.0,2.0
-"file1",2.0,5.0
-"file2",0.0,0.0
-"file2",1.0,2.0
-"file2",2.0,5.0
+"filename","F_rowId","col"
+"file1",1.0,0.0
+"file1",2.0,2.0
+"file1",3.0,5.0
+"file2",1.0,0.0
+"file2",2.0,2.0
+"file2",3.0,5.0
