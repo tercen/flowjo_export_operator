@@ -1,5 +1,5 @@
 {
-  "name": "FlowJo Export Operator",
+  "name": "Export FlowJo",
   "description": "Exports FlowJo results.",
   "tags": [
     "export"
