@@ -34,5 +34,49 @@
       "defaultValue": 0,
       "description": "Numeric value for NA values in double variables"
     }
-  ]
+  ],
+  "operatorSpec": {
+    "kind": "OperatorSpec",
+    "ontologyUri": "https://tercen.com/_ontology/tercen",
+    "ontologyVersion": "1.0.0",
+    "inputSpecs": [
+      {
+        "kind": "CrosstabSpec",
+        "metaFactors": [
+          {
+            "kind": "MetaFactor",
+            "name": "filename",
+            "type": "",
+            "description": "Filename for grouping exported data (required)",
+            "ontologyMapping": "document",
+            "crosstabMapping": "row",
+            "cardinality": "1",
+            "factors": []
+          },
+          {
+            "kind": "MetaFactor",
+            "name": "rowId",
+            "type": "",
+            "description": "Row identifier (required)",
+            "ontologyMapping": "observation",
+            "crosstabMapping": "row",
+            "cardinality": "1",
+            "factors": []
+          },
+          {
+            "kind": "MetaFactor",
+            "name": "Results",
+            "type": "",
+            "description": "Result columns to export",
+            "ontologyMapping": "variable",
+            "crosstabMapping": "row",
+            "cardinality": "1..n",
+            "factors": []
+          }
+        ],
+        "axis": []
+      }
+    ],
+    "outputSpecsV2": []
+  }
 }
